@@ -9,7 +9,7 @@ using namespace std;
 int main(void)
 {
 	//string filePath = "Model/syak/Shachiku_chan_Ver2.0.fbx";
-	string filePath = "Model/mori_model_03.fbx";
+	string filePath = "Model/UnityCHanKAGURA.fbx";
 	FbxLoader fbx;
 	//cin >> filePath;
 	fbx.Init(filePath.c_str());

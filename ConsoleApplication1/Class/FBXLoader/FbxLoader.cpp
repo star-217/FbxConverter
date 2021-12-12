@@ -3,7 +3,6 @@
 
 #include "FbxLoader.h";
 
-#pragma comment(lib,"libfbxsdk.lib")
 #pragma comment(lib,"libfbxsdk-md.lib")
 #pragma comment(lib,"libxml2-md.lib")
 #pragma comment(lib,"zlib-md.lib")
@@ -35,6 +34,7 @@ void FbxLoader::Init(const char* filePath)
 	{
 		CreateMesh(a->GetMesh());
 	}
+
 
 	return;
 }
@@ -118,4 +118,55 @@ void FbxLoader::CreateMesh(FbxMesh* mesh)
 		m_sml.Vertices[i].uv.x = uv[i][0];
 		m_sml.Vertices[i].uv.y = uv[i][1];
 	}
+
+	auto manode = mesh->GetNode();
+	auto numMaterial = manode->GetMaterialCount();
+	for (int i = 0; i < numMaterial; i++)
+	{
+		CreateMaterial(manode->GetMaterial(i),i);
+	}
+
+}
+
+void FbxLoader::CreateMaterial(FbxSurfaceMaterial* material, int index)
+{
+	if (material->GetClassId().Is(FbxSurfaceLambert::ClassId))
+	{
+		auto lambert = (FbxSurfaceLambert*)material;
+		CreateLambert(lambert);
+	}
+	else if (material->GetClassId().Is(FbxSurfacePhong::ClassId))
+	{
+		auto phong = (FbxSurfacePhong*)material;
+		CreatePhong(phong,index);
+	}
+}
+
+void FbxLoader::CreateLambert(FbxSurfaceLambert* material)
+{
+	SML::MaterialLambert lambert;
+	lambert.ambient.x = (float)material->Ambient.Get()[0];
+	lambert.ambient.y = (float)material->Ambient.Get()[0];
+	lambert.ambient.z = (float)material->Ambient.Get()[0];
+	lambert.ambient.w = (float)material->AmbientFactor;
+
+	lambert.diffuse.x = (float)material->Diffuse.Get()[0];
+	lambert.diffuse.y = (float)material->Diffuse.Get()[1];
+	lambert.diffuse.z = (float)material->Diffuse.Get()[2];
+	lambert.diffuse.x = (float)material->DiffuseFactor;
+
+	lambert.emissive.x = (float)material->Emissive.Get()[0];
+	lambert.emissive.y = (float)material->Emissive.Get()[1];
+	lambert.emissive.z = (float)material->Emissive.Get()[2];
+	lambert.emissive.x = (float)material->EmissiveFactor;
+
+	m_sml.lambert.push_back(lambert);
+}
+
+void FbxLoader::CreatePhong(FbxSurfacePhong* material, int index)
+{
+	m_sml.lambert[index].specular.x = (float)material->Specular.Get()[0];
+	m_sml.lambert[index].specular.y = (float)material->Specular.Get()[1];
+	m_sml.lambert[index].specular.z = (float)material->Specular.Get()[2];
+	m_sml.lambert[index].specular.w = (float)material->SpecularFactor;
 }

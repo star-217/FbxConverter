@@ -13,8 +13,26 @@ struct SML
 		XMFLOAT2 uv = XMFLOAT2(0,0);
 	};
 
+	struct MaterialLambert
+	{
+		XMFLOAT4 ambient;
+		XMFLOAT4 diffuse;
+		XMFLOAT4 emissive;
+		XMFLOAT4 specular;
+	};
+
+	struct MaterialEtc
+	{
+		XMFLOAT3 bump;
+		float transparency;
+		float shininess;
+		float reflect;
+	};
+
 	int numVertex;
 
 	std::vector<SVertex> Vertices;
 	std::vector<int>	 Indeces;
+	std::vector<MaterialLambert> lambert;
+	std::vector<MaterialEtc> materialetc;
 };

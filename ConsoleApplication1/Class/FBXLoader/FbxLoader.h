@@ -14,11 +14,15 @@ public:
 	void Init(const char* filePath);
 	void Release();
 
-	void CollectMeshNode(FbxNode*, std::vector<FbxNode*>&);
-	void CreateMesh(FbxMesh*);
-
 	SML GetData() { return m_sml; }
 private:
+
+	void CollectMeshNode(FbxNode*, std::vector<FbxNode*>&);
+	void CreateMesh(FbxMesh*);
+	void CreateMaterial(FbxSurfaceMaterial* ,int);
+	void CreateLambert(FbxSurfaceLambert*);
+	void CreatePhong(FbxSurfacePhong* , int);
+
 
 	FbxManager*		m_manager;
 	FbxImporter*	m_importer;
