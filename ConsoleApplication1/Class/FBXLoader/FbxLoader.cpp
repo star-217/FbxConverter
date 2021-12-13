@@ -32,7 +32,7 @@ void FbxLoader::Init(const char* filePath)
 
 	for (auto a : node_list)
 	{
-		CreateMesh(a->GetMesh());
+		LoadMesh(a->GetMesh());
 	}
 
 
@@ -64,7 +64,7 @@ void FbxLoader::CollectMeshNode(FbxNode* node, std::vector<FbxNode*>& list)
 	}
 }
 
-void FbxLoader::CreateMesh(FbxMesh* mesh)
+void FbxLoader::LoadMesh(FbxMesh* mesh)
 {
 	FbxVector4* vertices = mesh->GetControlPoints();
 
@@ -123,26 +123,52 @@ void FbxLoader::CreateMesh(FbxMesh* mesh)
 	auto numMaterial = manode->GetMaterialCount();
 	for (int i = 0; i < numMaterial; i++)
 	{
-		CreateMaterial(manode->GetMaterial(i),i);
+		LoadMaterial(manode->GetMaterial(i),i);
 	}
+	LoadBorn(mesh);
 
 }
 
-void FbxLoader::CreateMaterial(FbxSurfaceMaterial* material, int index)
+void FbxLoader::LoadMaterial(FbxSurfaceMaterial* material, int index)
 {
 	if (material->GetClassId().Is(FbxSurfaceLambert::ClassId))
 	{
 		auto lambert = (FbxSurfaceLambert*)material;
-		CreateLambert(lambert);
+		LoadLambert(lambert);
 	}
 	else if (material->GetClassId().Is(FbxSurfacePhong::ClassId))
 	{
 		auto phong = (FbxSurfacePhong*)material;
-		CreatePhong(phong,index);
+		LoadPhong(phong,index);
+	}
+
+	auto prop = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+
+	int textureNum = prop.GetSrcObjectCount<FbxFileTexture>();
+
+	if (textureNum > 0)
+	{
+		int numGeneralTexture = prop.GetSrcObjectCount<FbxFileTexture>();
+		for (int i = 0; i < numGeneralTexture; i++)
+		{
+			auto texture = prop.GetSrcObject<FbxFileTexture>(0);
+			const char* fileName = texture->GetRelativeFileName();
+			m_sml.textureName.push_back(fileName);
+		}
+	}
+	else
+	{
+		int layerNum = prop.GetSrcObjectCount<FbxLayeredTexture>();
+		if (layerNum > 0)
+		{
+			auto texture = prop.GetSrcObject<FbxFileTexture>();
+			const char* fileName = texture->GetRelativeFileName();
+			m_sml.textureName.push_back(fileName);
+		}
 	}
 }
 
-void FbxLoader::CreateLambert(FbxSurfaceLambert* material)
+void FbxLoader::LoadLambert(FbxSurfaceLambert* material)
 {
 	SML::MaterialLambert lambert;
 	lambert.ambient.x = (float)material->Ambient.Get()[0];
@@ -163,10 +189,37 @@ void FbxLoader::CreateLambert(FbxSurfaceLambert* material)
 	m_sml.lambert.push_back(lambert);
 }
 
-void FbxLoader::CreatePhong(FbxSurfacePhong* material, int index)
+void FbxLoader::LoadPhong(FbxSurfacePhong* material, int index)
 {
 	m_sml.lambert[index].specular.x = (float)material->Specular.Get()[0];
 	m_sml.lambert[index].specular.y = (float)material->Specular.Get()[1];
 	m_sml.lambert[index].specular.z = (float)material->Specular.Get()[2];
 	m_sml.lambert[index].specular.w = (float)material->SpecularFactor;
+}
+
+void FbxLoader::LoadBorn(FbxMesh* mesh)
+{
+	int skinCount = mesh->GetDeformerCount(FbxDeformer::eSkin);
+	for (int i = 0; i < skinCount; i++)
+	{
+		FbxSkin* skin = FbxCast<FbxSkin>(mesh->GetDeformer(i, FbxDeformer::eSkin));
+		int clusterNum = skin->GetClusterCount();
+		for (int j = 0; j < clusterNum; j++)
+		{
+			LoadCluster(skin->GetCluster(j),j);
+
+		}
+	}
+}
+
+void FbxLoader::LoadCluster(FbxCluster* cluster,int index)
+{
+	int pointNum = cluster->GetControlPointIndicesCount();
+	int* pointAry = cluster->GetControlPointIndices();
+	auto weightAry = cluster->GetControlPointWeights();
+
+	for (int i = 0; i < pointNum; i++)
+	{
+		m_sml.Vertices[pointAry[i]].weight[index] = (float)weightAry[i];
+	}
 }

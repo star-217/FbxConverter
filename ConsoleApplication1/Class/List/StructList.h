@@ -11,7 +11,9 @@ struct SML
 		XMFLOAT3 pos;
 		XMFLOAT3 normal;
 		XMFLOAT2 uv = XMFLOAT2(0,0);
+		float weight[4] = {};
 	};
+
 
 	struct MaterialLambert
 	{
@@ -35,4 +37,5 @@ struct SML
 	std::vector<int>	 Indeces;
 	std::vector<MaterialLambert> lambert;
 	std::vector<MaterialEtc> materialetc;
+	std::vector<const char*> textureName;
 };

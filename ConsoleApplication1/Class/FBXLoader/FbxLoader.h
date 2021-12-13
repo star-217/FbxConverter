@@ -18,11 +18,12 @@ public:
 private:
 
 	void CollectMeshNode(FbxNode*, std::vector<FbxNode*>&);
-	void CreateMesh(FbxMesh*);
-	void CreateMaterial(FbxSurfaceMaterial* ,int);
-	void CreateLambert(FbxSurfaceLambert*);
-	void CreatePhong(FbxSurfacePhong* , int);
-
+	void LoadMesh(FbxMesh*);
+	void LoadMaterial(FbxSurfaceMaterial* ,int);
+	void LoadLambert(FbxSurfaceLambert*);
+	void LoadPhong(FbxSurfacePhong* , int);
+	void LoadBorn(FbxMesh*);
+	void LoadCluster(FbxCluster*,int);
 
 	FbxManager*		m_manager;
 	FbxImporter*	m_importer;
